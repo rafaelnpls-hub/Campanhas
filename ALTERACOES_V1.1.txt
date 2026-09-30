@@ -1,0 +1,9 @@
+Central de Campanhas v1.1
+
+- Habilitado aceite de cookies.
+- Habilitado aceite de cookies de terceiros na WebView.
+- Habilitado DOM Storage e Database.
+- Adicionada compatibilidade extra para iframes e Looker Studio.
+- Mantido o conteúdo dentro do aplicativo.
+- Codemagic configurado para mac_mini_m2.
+- Versão do app alterada para 1.1 (versionCode 2).
