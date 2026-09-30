@@ -1,0 +1,37 @@
+CENTRAL DE CAMPANHAS - COMO GERAR O APK ONLINE NO CODEMAGIC
+============================================================
+
+1. Crie uma conta no GitHub, caso ainda não tenha.
+2. Crie um novo repositório (por exemplo: central-campanhas-android).
+3. Extraia este ZIP.
+4. Envie PARA A RAIZ do repositório todo o conteúdo da pasta CentralCampanhasAndroid.
+
+IMPORTANTE:
+O arquivo codemagic.yaml precisa aparecer na raiz do repositório,
+no mesmo nível de app/, gradlew, settings.gradle.kts e build.gradle.kts.
+
+5. Acesse https://codemagic.io/ e faça login.
+6. Clique em Add application.
+7. Conecte sua conta do GitHub e selecione o repositório.
+8. Quando o projeto aparecer, use a configuração codemagic.yaml.
+9. Inicie o workflow:
+   Central de Campanhas - APK
+10. Aguarde o build finalizar.
+11. Na área Artifacts, baixe:
+    app-debug.apk
+
+Esse APK é uma versão DEBUG, ideal para instalar diretamente no celular e testar.
+Não é necessário criar keystore para esse build.
+
+TELAS DO APP
+------------
+- Tela inicial embutida no aplicativo.
+- Alternância entre tema claro e escuro.
+- Conta Chave abre https://campanhacc.netlify.app/
+- Varejo abre https://campanhavj.netlify.app/
+- Os sites são abertos dentro da WebView do próprio aplicativo.
+
+OBSERVAÇÃO
+----------
+Na primeira compilação, o Gradle Wrapper baixa automaticamente os arquivos
+necessários da versão Gradle 8.9.
