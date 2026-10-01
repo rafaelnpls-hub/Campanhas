@@ -11,7 +11,12 @@ import android.widget.TextView;
 
 import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabsClient;
+import androidx.browser.customtabs.CustomTabsServiceConnection;
+import androidx.browser.customtabs.CustomTabsSession;
+import androidx.browser.customtabs.CustomTabsService;
 import androidx.browser.trusted.TrustedWebActivityIntentBuilder;
+import android.content.ComponentName;
 
 public class MainActivity extends Activity {
 
@@ -63,25 +68,58 @@ public class MainActivity extends Activity {
 
     private void abrirCentral(String url) {
         Uri uri = Uri.parse(url);
+        String packageName = CustomTabsClient.getPackageName(this, null);
 
-        try {
-            TrustedWebActivityIntentBuilder twaBuilder =
-                    new TrustedWebActivityIntentBuilder(uri);
-
-            twaBuilder.build(getPackageName()).launchTrustedWebActivity(this);
-        } catch (Exception e) {
-            CustomTabColorSchemeParams colors = new CustomTabColorSchemeParams.Builder()
-                    .setToolbarColor(Color.rgb(17, 24, 39))
-                    .setNavigationBarColor(Color.rgb(17, 24, 39))
-                    .build();
-
-            CustomTabsIntent intent = new CustomTabsIntent.Builder()
-                    .setDefaultColorSchemeParams(colors)
-                    .setShowTitle(false)
-                    .setUrlBarHidingEnabled(true)
-                    .build();
-
-            intent.launchUrl(this, uri);
+        if (packageName == null) {
+            abrirFallback(uri);
+            return;
         }
+
+        CustomTabsServiceConnection connection = new CustomTabsServiceConnection() {
+            @Override
+            public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+                client.warmup(0L);
+                CustomTabsSession session = client.newSession(null);
+
+                if (session == null) {
+                    abrirFallback(uri);
+                    return;
+                }
+
+                try {
+                    TrustedWebActivityIntentBuilder twaBuilder =
+                            new TrustedWebActivityIntentBuilder(uri);
+                    twaBuilder.build(session).launchTrustedWebActivity(MainActivity.this);
+                } catch (Exception e) {
+                    abrirFallback(uri);
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+            }
+        };
+
+        boolean connected = CustomTabsClient.bindCustomTabsService(
+                this, packageName, connection);
+
+        if (!connected) {
+            abrirFallback(uri);
+        }
+    }
+
+    private void abrirFallback(Uri uri) {
+        CustomTabColorSchemeParams colors = new CustomTabColorSchemeParams.Builder()
+                .setToolbarColor(Color.rgb(17, 24, 39))
+                .setNavigationBarColor(Color.rgb(17, 24, 39))
+                .build();
+
+        CustomTabsIntent intent = new CustomTabsIntent.Builder()
+                .setDefaultColorSchemeParams(colors)
+                .setShowTitle(false)
+                .setUrlBarHidingEnabled(true)
+                .build();
+
+        intent.launchUrl(this, uri);
     }
 }
