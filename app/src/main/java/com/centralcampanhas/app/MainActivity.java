@@ -68,44 +68,11 @@ public class MainActivity extends Activity {
 
     private void abrirCentral(String url) {
         Uri uri = Uri.parse(url);
-        String packageName = CustomTabsClient.getPackageName(this, null);
 
-        if (packageName == null) {
-            abrirFallback(uri);
-            return;
-        }
-
-        CustomTabsServiceConnection connection = new CustomTabsServiceConnection() {
-            @Override
-            public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
-                client.warmup(0L);
-                CustomTabsSession session = client.newSession(null);
-
-                if (session == null) {
-                    abrirFallback(uri);
-                    return;
-                }
-
-                try {
-                    TrustedWebActivityIntentBuilder twaBuilder =
-                            new TrustedWebActivityIntentBuilder(uri);
-                    twaBuilder.build(session).launchTrustedWebActivity(MainActivity.this);
-                } catch (Exception e) {
-                    abrirFallback(uri);
-                }
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-            }
-        };
-
-        boolean connected = CustomTabsClient.bindCustomTabsService(
-                this, packageName, connection);
-
-        if (!connected) {
-            abrirFallback(uri);
-        }
+        // Abre imediatamente pelo Custom Tab confiável, que já comprovamos
+        // funcionar com autenticação Google. A remoção da barra será tratada
+        // depois sem impedir o acesso às campanhas.
+        abrirFallback(uri);
     }
 
     private void abrirFallback(Uri uri) {
