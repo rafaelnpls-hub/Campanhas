@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.trusted.TrustedWebActivityIntentBuilder;
 
 public class MainActivity extends Activity {
 
@@ -61,17 +62,26 @@ public class MainActivity extends Activity {
     }
 
     private void abrirCentral(String url) {
-        CustomTabColorSchemeParams colors = new CustomTabColorSchemeParams.Builder()
-                .setToolbarColor(Color.rgb(17, 24, 39))
-                .setNavigationBarColor(Color.rgb(17, 24, 39))
-                .build();
+        Uri uri = Uri.parse(url);
 
-        CustomTabsIntent intent = new CustomTabsIntent.Builder()
-                .setDefaultColorSchemeParams(colors)
-                .setShowTitle(false)
-                .setUrlBarHidingEnabled(true)
-                .build();
+        try {
+            TrustedWebActivityIntentBuilder twaBuilder =
+                    new TrustedWebActivityIntentBuilder(uri);
 
-        intent.launchUrl(this, Uri.parse(url));
+            twaBuilder.build(getPackageName()).launchTrustedWebActivity(this);
+        } catch (Exception e) {
+            CustomTabColorSchemeParams colors = new CustomTabColorSchemeParams.Builder()
+                    .setToolbarColor(Color.rgb(17, 24, 39))
+                    .setNavigationBarColor(Color.rgb(17, 24, 39))
+                    .build();
+
+            CustomTabsIntent intent = new CustomTabsIntent.Builder()
+                    .setDefaultColorSchemeParams(colors)
+                    .setShowTitle(false)
+                    .setUrlBarHidingEnabled(true)
+                    .build();
+
+            intent.launchUrl(this, uri);
+        }
     }
 }
