@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -12,6 +13,15 @@
         android:gravity="center"
         android:padding="28dp">
 
+        <Button
+            android:id="@+id/btnTema"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🌙 Tema escuro"
+            android:textAllCaps="false"
+            android:layout_gravity="start"
+            android:layout_marginBottom="24dp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -20,6 +30,7 @@
             android:layout_marginBottom="18dp" />
 
         <TextView
+            android:id="@+id/titulo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Escolha Sua Equipe"
@@ -29,6 +40,7 @@
             android:gravity="center" />
 
         <TextView
+            android:id="@+id/subtitulo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Selecione sua equipe para acessar a central de campanhas."
@@ -62,6 +74,7 @@
             android:backgroundTint="#0056B3" />
 
         <TextView
+            android:id="@+id/rodape"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Central de Campanhas"
