@@ -1,80 +1,43 @@
 package com.centralcampanhas.app;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
-import android.webkit.CookieManager;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.widget.Button;
+
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
+import androidx.browser.customtabs.CustomTabsIntent;
 
 public class MainActivity extends Activity {
 
-    private WebView webView;
+    private static final String URL_CONTA_CHAVE = "https://campanhacc.netlify.app/";
+    private static final String URL_VAREJO = "https://campanhavj.netlify.app/";
 
-    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        webView = findViewById(R.id.webView);
-        webView.setWebViewClient(new WebViewClient());
+        Button contaChave = findViewById(R.id.btnContaChave);
+        Button varejo = findViewById(R.id.btnVarejo);
 
-        WebSettings settings = webView.getSettings();
-
-        // Necessário para Google Forms / Looker Studio / páginas modernas.
-        settings.setJavaScriptEnabled(true);
-        settings.setDomStorageEnabled(true);
-        settings.setDatabaseEnabled(true);
-
-        // Melhor compatibilidade com conteúdo responsivo e iframes.
-        settings.setLoadWithOverviewMode(true);
-        settings.setUseWideViewPort(true);
-        settings.setLoadsImagesAutomatically(true);
-
-        // Mantém suporte a recursos usados por páginas incorporadas.
-        settings.setJavaScriptCanOpenWindowsAutomatically(true);
-        settings.setSupportMultipleWindows(false);
-
-        // Permite conteúdo HTTPS incorporado e evita bloqueios desnecessários.
-        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
-
-        settings.setBuiltInZoomControls(false);
-        settings.setDisplayZoomControls(false);
-
-        // CORREÇÃO PRINCIPAL:
-        // O Looker Studio dentro de iframe precisa de cookies de terceiros.
-        CookieManager cookieManager = CookieManager.getInstance();
-        cookieManager.setAcceptCookie(true);
-        cookieManager.setAcceptThirdPartyCookies(webView, true);
-        cookieManager.flush();
-
-        if (savedInstanceState == null) {
-            webView.loadUrl("file:///android_asset/index.html");
-        } else {
-            webView.restoreState(savedInstanceState);
-        }
+        contaChave.setOnClickListener(v -> abrirCentral(URL_CONTA_CHAVE));
+        varejo.setOnClickListener(v -> abrirCentral(URL_VAREJO));
     }
 
-    @Override
-    protected void onPause() {
-        CookieManager.getInstance().flush();
-        super.onPause();
-    }
+    private void abrirCentral(String url) {
+        CustomTabColorSchemeParams colors = new CustomTabColorSchemeParams.Builder()
+                .setToolbarColor(Color.rgb(17, 24, 39))
+                .setNavigationBarColor(Color.rgb(17, 24, 39))
+                .build();
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        webView.saveState(outState);
-        super.onSaveInstanceState(outState);
-    }
+        CustomTabsIntent intent = new CustomTabsIntent.Builder()
+                .setDefaultColorSchemeParams(colors)
+                .setShowTitle(false)
+                .setUrlBarHidingEnabled(true)
+                .build();
 
-    @Override
-    public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
-        }
+        intent.launchUrl(this, Uri.parse(url));
     }
 }
