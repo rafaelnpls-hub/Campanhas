@@ -1,10 +1,13 @@
 workflows:
-  android-debug-apk:
-    name: Central de Campanhas - APK
+  android-release-apk:
+    name: Central de Campanhas - APK assinado
     max_build_duration: 60
     instance_type: mac_mini_m2
     environment:
       java: 17
+      android_signing:
+        - central_campanhas
+
     scripts:
       - name: Permitir execução do Gradle Wrapper
         script: chmod +x ./gradlew
@@ -12,9 +15,13 @@ workflows:
       - name: Configurar Android SDK
         script: echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
 
-      - name: Gerar APK de teste
-        script: ./gradlew assembleDebug
+      - name: Conferir certificado de assinatura
+        script: |
+          keytool -list -v             -keystore "$CM_KEYSTORE_PATH"             -storepass "$CM_KEYSTORE_PASSWORD"             -alias "$CM_KEY_ALIAS" | grep -E "Alias name:|SHA256:"
+
+      - name: Gerar APK release assinado
+        script: ./gradlew assembleRelease
 
     artifacts:
-      - app/build/outputs/apk/debug/app-debug.apk
+      - app/build/outputs/apk/release/app-release.apk
       - app/build/outputs/**/*.apk
