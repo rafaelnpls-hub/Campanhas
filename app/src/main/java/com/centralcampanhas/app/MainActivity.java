@@ -1,22 +1,25 @@
 package com.centralcampanhas.app;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsClient;
-import androidx.browser.customtabs.CustomTabsServiceConnection;
-import androidx.browser.customtabs.CustomTabsSession;
-import androidx.browser.customtabs.CustomTabsService;
-import androidx.browser.trusted.TrustedWebActivityIntentBuilder;
-import android.content.ComponentName;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends Activity {
 
@@ -67,26 +70,55 @@ public class MainActivity extends Activity {
     }
 
     private void abrirCentral(String url) {
-        Uri uri = Uri.parse(url);
-
-        // Abre imediatamente pelo Custom Tab confiável, que já comprovamos
-        // funcionar com autenticação Google. A remoção da barra será tratada
-        // depois sem impedir o acesso às campanhas.
-        abrirFallback(uri);
+        abrirFallback(Uri.parse(url));
     }
 
     private void abrirFallback(Uri uri) {
-        CustomTabColorSchemeParams colors = new CustomTabColorSchemeParams.Builder()
-                .setToolbarColor(Color.rgb(17, 24, 39))
-                .setNavigationBarColor(Color.rgb(17, 24, 39))
-                .build();
+        // Consulta uma URL genérica para encontrar navegadores, sem abrir a página.
+        Intent probe = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.example.com/"));
+        probe.addCategory(Intent.CATEGORY_BROWSABLE);
+        List<String> packages = new ArrayList<>();
+        for (ResolveInfo info : getPackageManager().queryIntentActivities(probe, 0)) {
+            String candidate = info.activityInfo.packageName;
+            if (!getPackageName().equals(candidate) && !packages.contains(candidate)) {
+                packages.add(candidate);
+            }
+        }
+        // Mantém a preferência pelo navegador padrão quando ele suporta Custom Tabs.
+        String browserPackage = CustomTabsClient.getPackageName(this, packages, false);
 
-        CustomTabsIntent intent = new CustomTabsIntent.Builder()
-                .setDefaultColorSchemeParams(colors)
-                .setShowTitle(false)
-                .setUrlBarHidingEnabled(true)
-                .build();
+        if (browserPackage != null && !getPackageName().equals(browserPackage)) {
+            CustomTabColorSchemeParams colors = new CustomTabColorSchemeParams.Builder()
+                    .setToolbarColor(Color.rgb(17, 24, 39))
+                    .setNavigationBarColor(Color.rgb(17, 24, 39))
+                    .build();
 
-        intent.launchUrl(this, uri);
+            CustomTabsIntent customTab = new CustomTabsIntent.Builder()
+                    .setDefaultColorSchemeParams(colors)
+                    .setShowTitle(false)
+                    .setUrlBarHidingEnabled(true)
+                    .build();
+
+            // Impede que o Android encaminhe esta URL de volta ao próprio app.
+            customTab.intent.setPackage(browserPackage);
+            try {
+                customTab.launchUrl(this, uri);
+                return;
+            } catch (ActivityNotFoundException | SecurityException e) {
+                Log.w("CentralCampanhas", "Falha ao abrir Custom Tab; tentando navegador", e);
+            }
+        }
+
+        // O manifesto não registra mais o app como receptor desses links.
+        Intent browser = new Intent(Intent.ACTION_VIEW, uri);
+        browser.addCategory(Intent.CATEGORY_BROWSABLE);
+        try {
+            startActivity(browser);
+        } catch (ActivityNotFoundException | SecurityException e) {
+            Log.e("CentralCampanhas", "Não foi possível abrir a campanha", e);
+            Toast.makeText(this,
+                    "Não foi possível abrir a campanha. Verifique se há um navegador instalado e habilitado.",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 }
